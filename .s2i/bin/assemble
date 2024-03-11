@@ -1,0 +1,46 @@
+#!/bin/bash -e
+
+if [ -e /usr/local/sti/assemble ]; then
+  # old assemble location in previous php image versions
+  source /usr/local/sti/assemble
+else 
+  source ${STI_SCRIPTS_PATH}/assemble
+fi
+
+echo "*--------------------------------------------------------------------------[TEST]"
+
+echo "=> setup .env"
+
+
+echo "*--------------------------------------------------------------[TEST!]"
+sed -i '1iHeader unset X-Powered-By' ${HTTPD_MAIN_CONF_PATH}/httpd.conf
+sed -i '1iTraceEnable Off' ${HTTPD_MAIN_CONF_PATH}/httpd.conf
+sed -i '1iServerSignature Off' ${HTTPD_MAIN_CONF_PATH}/httpd.conf
+sed -i '1iServerTokens Prod' ${HTTPD_MAIN_CONF_PATH}/httpd.conf
+
+echo "HTTPD_MAIN_CONF_PATH=${HTTPD_MAIN_CONF_PATH}"
+echo "HTTPD_MAIN_CONF_D_PATH=${HTTPD_MAIN_CONF_D_PATH}"
+
+sed -i 's/\/opt\/app-root\/src/\/opt\/app-root\/src\/public/g' ${HTTPD_MAIN_CONF_PATH}/httpd.conf
+sed -i '/^<Directory \"\/opt\/app-root\/src\/public\">/a Require method GET POST' ${HTTPD_MAIN_CONF_PATH}/httpd.conf
+
+
+sed -i 's/Options Indexes FollowSymLinks/Options FollowSymLinks/g' ${HTTPD_MAIN_CONF_PATH}/httpd.conf
+rm -f ${HTTPD_MAIN_CONF_D_PATH}/autoindex.conf
+rm -f ${HTTPD_MAIN_CONF_D_PATH}/welcome.conf
+
+echo "=> apache setting changed"
+
+echo "*-----------------------------------------------------------------[TEST!!!]"
+
+sed -i 's/date.timezone = GMT/date.timezone = \"Asia\/Tokyo\"/' ${APP_ROOT}/etc/php.ini.template
+
+sed -i 's/;mbstring.language = Japanese/mbstring.language = Japanese/' ${APP_ROOT}/etc/php.ini.template
+sed -i 's/;mbstring.internal_encoding =/mbstring.internal_encoding = UTF-8/' ${APP_ROOT}/etc/php.ini.template
+sed -i 's/;mbstring.http_input =/mbstring.http_input = UTF-8/' ${APP_ROOT}/etc/php.ini.template
+sed -i 's/;mbstring.http_output =/mbstring.http_output = pass/' ${APP_ROOT}/etc/php.ini.template
+sed -i 's/;mbstring.encoding_translation = Off/mbstring.encoding_translation = On/' ${APP_ROOT}/etc/php.ini.template
+sed -i 's/;mbstring.detect_order = auto/mbstring.detect_order = auto/' ${APP_ROOT}/etc/php.ini.template
+sed -i 's/;mbstring.substitute_character = none/mbstring.substitute_character = none/' ${APP_ROOT}/etc/php.ini.template
+
+echo "=> php setting changed"
